@@ -1,0 +1,68 @@
+/* Design tokens, per spec/design-tokens.md.
+   Fonts are self-hosted (OFL) so no request leaves the site. */
+
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('../fonts/rubik-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('../fonts/rubik-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Heebo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/heebo-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Heebo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/heebo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --ground: #F2F3F5;
+  --surface: #FFFFFF;
+  --ink: #18202B;
+  --text-body: #3A4452;
+  --text-muted: #586272;
+  --text-quadrant: #5E6876;
+  --border: #E1E4E9;
+  --border-chip: #DCE0E6;
+  --border-strong: #C9CFD8;
+  --radio-empty: #B8BFC9;
+  --fill-soft: #E6E9ED;
+  --graph-quadrant: #F5F6F8;
+  --graph-flex: #8C95A2;
+  --bar-weak: #D5DAE1;
+
+  --font-display: Rubik, 'Segoe UI', sans-serif;
+  --font-body: Heebo, 'Segoe UI', sans-serif;
+
+  --radius-card: 24px;
+  --radius-option: 22px;
+  --radius-button: 16px;
+  --radius-icon: 12px;
+  --radius-pill: 999px;
+}
+
+/* DISC colours. --disc-en / --disc-body: hero sub-text and communication line
+   (D and I from the mockup; S and C proposed, contrast >= 8:1 on the tint). */
+[data-disc='D'] { --disc-solid: #C2462E; --disc-on-solid: #FFFFFF; --disc-tint: #F7E2DC; --disc-eyebrow: #7A2A1A; --disc-en: #5E3328; --disc-body: #3A2420; }
+[data-disc='I'] { --disc-solid: #E0A126; --disc-on-solid: #18202B; --disc-tint: #FBEFD6; --disc-eyebrow: #6B4E12; --disc-en: #5A4A2A; --disc-body: #3A3220; }
+[data-disc='S'] { --disc-solid: #2B7F5C; --disc-on-solid: #FFFFFF; --disc-tint: #DDEFE6; --disc-eyebrow: #1F5A41; --disc-en: #2E4A3D; --disc-body: #1F3329; }
+[data-disc='C'] { --disc-solid: #2F5DA8; --disc-on-solid: #FFFFFF; --disc-tint: #DFE8F6; --disc-eyebrow: #213F73; --disc-en: #2F3E5C; --disc-body: #1F2A3D; }
