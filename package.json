@@ -1,0 +1,9 @@
+{
+  "name": "disc-quiz",
+  "private": true,
+  "type": "module",
+  "description": "שאלון סגנונות התנהגות (DISC). אתר סטטי, ללא תלויות.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
