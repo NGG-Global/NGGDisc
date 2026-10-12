@@ -24,7 +24,7 @@ export function render(root, ctx, letter) {
     : `${sideHe[style.quadrant.focus]} · ${sideHe[style.quadrant.pace]}`;
 
   const mineBar = isMine ? '' : `
-    <a class="mine-bar" href="#/style/${mine}">
+    <a class="mine-bar" data-enter href="#/style/${mine}">
       ${badge(mine, 'md')}
       <span class="mine-bar__text">הסגנון שלך: <b>${esc(styles[mine].title)}</b></span>
       <span class="mine-bar__back">חזרה${icon.forward(16)}</span>
@@ -38,14 +38,14 @@ export function render(root, ctx, letter) {
 
   root.innerHTML = `
     <div class="screen" data-disc="${letter}">
-      <div class="topbar">
+      <div class="topbar" data-enter>
         <a class="pill-btn" href="#/result">${icon.back(18)}<span>לגרף</span></a>
         <div class="topbar__title">ארבעת הסגנונות</div>
       </div>
       ${mineBar}
-      <div class="chips" role="group" aria-label="בחירת סגנון">${chips}</div>
+      <div class="chips" data-enter role="group" aria-label="בחירת סגנון">${chips}</div>
 
-      <div class="hero">
+      <div class="hero" data-enter data-slide>
         <div class="hero__row">
           ${badge(letter, 'xl')}
           <div class="hero__titles">
@@ -58,21 +58,21 @@ export function render(root, ctx, letter) {
         <p class="hero__body">${esc(withPeriod(style.communication))}</p>
       </div>
 
-      <div class="card card--list">
+      <div class="card card--list" data-enter data-slide>
         <h2>מאפיינים</h2>
         <ul class="list">
           ${style.traits.map((t) => `<li class="list__item"><span class="list__dot" aria-hidden="true"></span><span>${esc(t)}</span></li>`).join('')}
         </ul>
       </div>
 
-      <div class="card card--list">
+      <div class="card card--list" data-enter data-slide>
         <h2>איך נתנהל מולו?</h2>
         <ul class="list">
           ${style.howTo.map((t) => `<li class="list__item"><span class="list__check" aria-hidden="true">${icon.check(14, 3, '#18202B')}</span><span>${esc(t)}</span></li>`).join('')}
         </ul>
       </div>
 
-      <nav class="pager" aria-label="מעבר בין הסגנונות">
+      <nav class="pager" data-enter aria-label="מעבר בין הסגנונות">
         <a class="pager__prev" href="#/style/${prev}" aria-label="הסגנון הקודם: ${esc(styles[prev].title)}">${icon.back(18)}<span>${esc(styles[prev].title)}</span></a>
         <a class="pager__next" href="#/style/${next}" aria-label="הסגנון הבא: ${esc(styles[next].title)}"><span>${esc(styles[next].title)}</span>${icon.forward(18)}</a>
       </nav>
