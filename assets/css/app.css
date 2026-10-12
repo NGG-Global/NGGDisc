@@ -156,7 +156,7 @@ a.btn-primary { color: #FFFFFF; }
   flex: 1; height: 6px; border-radius: 3px;
   background: var(--border-chip); overflow: hidden; display: flex;
 }
-.progress__fill { width: 0; background: var(--ink); border-radius: 3px; }
+.progress__fill { width: 0; background: var(--ink); border-radius: 3px; transition: width 420ms var(--ease-out); }
 
 .q-head { display: flex; flex-direction: column; gap: 6px; padding-top: 24px; }
 .q-head__lead { font-size: 16px; color: var(--text-muted); }
@@ -176,7 +176,9 @@ a.btn-primary { color: #FFFFFF; }
   font-family: var(--font-display); font-weight: 600; font-size: 23px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out),
+    opacity var(--dur-2) ease, transform var(--dur-1) var(--ease-out);
 }
 /* Thicker border when selected; padding absorbs the difference so text doesn't shift. */
 .option[aria-pressed='true'] {
@@ -358,7 +360,98 @@ a.btn-primary { color: #FFFFFF; }
 .pager__next { background: var(--ink); color: #FFFFFF; }
 a.pager__next { color: #FFFFFF; }
 
-/* ---------- Motion ---------- */
+/* ---------- Polish: depth, hover and press states ---------- */
+
+.card, .stat, .mine-bar, .pill-btn, .icon-btn { box-shadow: var(--shadow-1); }
+.card--soft { box-shadow: none; }
+
+.btn-primary, .btn-secondary, .pill-btn, .icon-btn, .chip, .pager a, .mine-bar {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out),
+    border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option:not([aria-pressed='true']):hover { border-color: var(--border-strong); box-shadow: var(--shadow-2); }
+  .btn-primary:hover, .pager__next:hover { box-shadow: 0 8px 22px rgba(24, 32, 43, 0.22); transform: translateY(-1px); }
+  .btn-secondary:hover, .pager__prev:hover { border-color: var(--graph-flex); box-shadow: var(--shadow-1); }
+  .pill-btn:hover, .icon-btn:hover, .mine-bar:hover { box-shadow: var(--shadow-2); }
+  .chip:not([aria-pressed='true']):hover { border-color: var(--border-strong); background: var(--surface); }
+}
+
+.option:active { transform: scale(0.985); }
+.btn-primary:active, .btn-secondary:active, .pill-btn:active, .icon-btn:active,
+.chip:active, .pager a:active, .mine-bar:active { transform: scale(0.97); }
+
+/* Selection feedback during the short pause before the next pair */
+.option.is-dimmed { opacity: 0.5; }
+.option.is-picked .option__radio { animation: radio-pop 340ms var(--ease-spring); }
+.option.is-picked .option__radio path {
+  stroke-dasharray: 22;
+  animation: check-draw 240ms 60ms var(--ease-out) backwards;
+}
+
+/* ---------- Motion: screen entry ---------- */
+
+/* Fade-up stagger for whole screens */
+.nav-fade [data-enter] {
+  animation: enter-up var(--dur-3) var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+/* Between adjacent pairs/styles: content enters in reading direction (RTL) */
+.nav-forward [data-slide] {
+  animation: enter-from-left var(--dur-2) var(--ease-out) backwards;
+  animation-delay: calc(var(--s, 0) * 40ms);
+}
+.nav-back [data-slide] {
+  animation: enter-from-right var(--dur-2) var(--ease-out) backwards;
+  animation-delay: calc(var(--s, 0) * 40ms);
+}
+
+.screen--intro.nav-fade .logo-grid span { animation: tile-in 520ms var(--ease-spring) backwards; }
+.screen--intro.nav-fade .logo-grid span:nth-child(2) { animation-delay: 70ms; }
+.screen--intro.nav-fade .logo-grid span:nth-child(3) { animation-delay: 140ms; }
+.screen--intro.nav-fade .logo-grid span:nth-child(4) { animation-delay: 210ms; }
+
+.nav-fade .chip__mine { animation: tag-pop 380ms 320ms var(--ease-spring) backwards; }
+
+/* ---------- Motion: result reveal (arriving from the last pair) ---------- */
+
+.is-reveal .result-head .disc-badge { animation: badge-pop 520ms 120ms var(--ease-spring) backwards; }
+.is-reveal .quad.is-active { animation: tint-in 520ms 420ms ease backwards; }
+.is-reveal .graph__flex { animation: fade-in 420ms 380ms ease backwards; }
+.is-reveal .graph__dot { animation: dot-travel 800ms 520ms var(--ease-out) backwards; }
+.is-reveal .graph__halo {
+  animation: dot-travel 800ms 520ms var(--ease-out) backwards,
+    halo-pulse 900ms 1340ms ease-out;
+}
+.is-reveal .graph__you { animation: label-in 360ms 1280ms var(--ease-out) backwards; }
+.is-reveal .bar { animation: bar-grow 720ms 750ms var(--ease-out) backwards; }
+
+@keyframes enter-up { from { opacity: 0; transform: translateY(14px); } }
+@keyframes enter-from-left { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes enter-from-right { from { opacity: 0; transform: translateX(28px); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes tile-in { from { opacity: 0; transform: scale(0.7); } }
+@keyframes tag-pop { from { opacity: 0; transform: translateX(-50%) scale(0.6); } }
+@keyframes badge-pop { from { opacity: 0; transform: scale(0.6); } }
+@keyframes radio-pop { 0% { transform: scale(0.7); } 100% { transform: scale(1); } }
+@keyframes check-draw { from { stroke-dashoffset: 22; } }
+@keyframes tint-in { from { background-color: var(--graph-quadrant); } }
+@keyframes dot-travel {
+  0% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(0.4); }
+  22% { opacity: 1; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(1); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes halo-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  45% { transform: translate(-50%, -50%) scale(1.45); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@keyframes label-in { from { opacity: 0; transform: translate(-50%, 6px); } }
+@keyframes bar-grow { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+
+/* ---------- Reduced motion: everything lands in its final state ---------- */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -32,6 +32,9 @@ function createContext(questions, stylesData) {
     styles: stylesData,
     pairs,
     selectDelay: SELECT_DELAY_MS,
+    nav: { dir: 'fade', from: null },
+    lastProgress: null,
+    reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     get answers() { return state.answers; },
 
     answer(pairId, side) {
@@ -80,12 +83,45 @@ function startRoute(ctx) {
 }
 
 let firstRender = true;
+let prevRoute = null;
+
+// Direction of travel, used by the entry animations:
+// forward/back between adjacent pairs or styles, fade for everything else.
+function navigation(ctx, prev, name, arg) {
+  const nav = { dir: 'fade', from: prev ? prev.name : null };
+  if (!prev || prev.name !== name) return nav;
+  if (name === 'q') {
+    const a = Number(prev.arg);
+    const b = Number(arg);
+    if (b > a) nav.dir = 'forward';
+    else if (b < a) nav.dir = 'back';
+  } else if (name === 'style') {
+    const { order } = ctx.styles;
+    const i = order.indexOf(prev.arg);
+    const j = order.indexOf(arg);
+    if (j === (i + 1) % order.length) nav.dir = 'forward';
+    else if (j === (i + order.length - 1) % order.length) nav.dir = 'back';
+  }
+  return nav;
+}
+
+// Marks the new screen with its entry direction and numbers the elements
+// that enter in sequence (CSS reads --i for the stagger delay).
+function animateEntry(nav) {
+  const screen = root.firstElementChild;
+  if (!screen) return;
+  screen.classList.add(`nav-${nav.dir}`);
+  root.querySelectorAll('[data-enter]').forEach((el, i) => el.style.setProperty('--i', i));
+  root.querySelectorAll('[data-slide]').forEach((el, i) => el.style.setProperty('--s', i));
+}
 
 function route(ctx) {
   ctx.leave();
   const { name, arg } = parseHash(window.location.hash);
   const first = ctx.firstUnanswered();
   const complete = first === null;
+  const routeArg = name === 'style' ? String(arg || '').toUpperCase() : arg;
+  ctx.nav = navigation(ctx, prevRoute, name, routeArg);
   let title;
 
   switch (name) {
@@ -121,6 +157,8 @@ function route(ctx) {
       return ctx.redirect(startRoute(ctx));
   }
 
+  prevRoute = { name, arg: routeArg };
+  animateEntry(ctx.nav);
   document.title = title ? `${title} · שאלון סגנונות DISC` : 'שאלון סגנונות DISC';
 
   if (firstRender) {

@@ -33,11 +33,36 @@ function scoreRow(axis, scores) {
     <div class="score">
       <div class="score__axis">${esc(axis.label)}</div>
       <div class="score__row">
-        <span class="${lead === 'a' ? 'is-lead' : ''}">${esc(a.he)} <b>${sa}</b></span>
-        <span class="${lead === 'b' ? 'is-lead' : ''}">${esc(b.he)} <b>${sb}</b></span>
+        <span class="${lead === 'a' ? 'is-lead' : ''}">${esc(a.he)} <b data-count="${sa}" aria-hidden="true">${sa}</b><span class="sr-only">${sa}</span></span>
+        <span class="${lead === 'b' ? 'is-lead' : ''}">${esc(b.he)} <b data-count="${sb}" aria-hidden="true">${sb}</b><span class="sr-only">${sb}</span></span>
       </div>
       <div class="bar" aria-hidden="true">${bar(sa, lead === 'a')}${bar(sb, lead === 'b')}</div>
     </div>`;
+}
+
+const COUNT_DELAY_MS = 750;
+const COUNT_MS = 650;
+
+function countUp(nodes, ctx) {
+  const els = [...nodes];
+  els.forEach((el) => { el.textContent = '0'; });
+  let raf = 0;
+  const timer = setTimeout(() => {
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / COUNT_MS);
+      const eased = 1 - (1 - t) ** 3;
+      els.forEach((el) => { el.textContent = String(Math.round(Number(el.dataset.count) * eased)); });
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }, COUNT_DELAY_MS);
+  // Leaving early always shows the real values.
+  ctx.onLeave(() => {
+    clearTimeout(timer);
+    cancelAnimationFrame(raf);
+    els.forEach((el) => { el.textContent = el.dataset.count; });
+  });
 }
 
 export function render(root, ctx) {
@@ -48,6 +73,8 @@ export function render(root, ctx) {
   const names = sideNames(ctx.questions);
   const notes = ctx.styles.notes;
   const { focus, pace } = style.quadrant;
+  // The full reveal plays when arriving straight from the last pair.
+  const reveal = ctx.nav.from === 'q' && !ctx.reducedMotion();
   const graphLabel = `מפת הסגנונות: המיקום שלך ברביע ה${style.name}, בצד ה${names[focus]} ובצד ה${names[pace]}`;
 
   const quads = QUADRANTS.map((k) => `
@@ -56,13 +83,13 @@ export function render(root, ctx) {
     </div>`).join('');
 
   root.innerHTML = `
-    <div class="screen">
-      <div class="topbar">
+    <div class="screen screen--result${reveal ? ' is-reveal' : ''}">
+      <div class="topbar" data-enter>
         <div class="topbar__title">התוצאה שלך</div>
         <button type="button" class="pill-btn" data-action="restart">${icon.restart(18)}<span>מילוי מחדש</span></button>
       </div>
 
-      <div class="result-head">
+      <div class="result-head" data-enter>
         <div class="result-head__eyebrow">הסגנון הבולט שלך</div>
         <div class="result-head__row">
           ${badge(mine, 'lg')}
@@ -73,7 +100,7 @@ export function render(root, ctx) {
         </div>
       </div>
 
-      <div class="card card--graph">
+      <div class="card card--graph" data-enter>
         <div class="graph" role="img" aria-label="${esc(graphLabel)}">
           ${quads}
           <div class="graph__flex" aria-hidden="true"></div>
@@ -91,23 +118,23 @@ export function render(root, ctx) {
         </div>
       </div>
 
-      <div class="card">
+      <div class="card card--scores" data-enter>
         <h2>הניקוד שלך</h2>
         ${ctx.questions.axes.map((axis) => scoreRow(axis, scores)).join('')}
       </div>
 
-      <div class="card card--soft">
+      <div class="card card--soft" data-enter>
         <h2>איך לקרוא את התוצאה</h2>
         <p>${esc(notes[0])}</p>
         <p>${esc(notes[1])}</p>
       </div>
 
-      <div class="actions">
+      <div class="actions" data-enter>
         <a class="btn-primary" href="#/style/${mine}"><span>לקרוא על הסגנון שלי</span>${icon.forward(20)}</a>
         <a class="btn-secondary" href="#/style/${mine}">לכל ארבעת הסגנונות</a>
       </div>
 
-      <p class="fineprint">${esc(notes[2])}</p>
+      <p class="fineprint" data-enter>${esc(notes[2])}</p>
     </div>`;
 
   root.querySelectorAll('[data-flex]').forEach((el) => { el.style.flex = el.dataset.flex; });
@@ -123,6 +150,16 @@ export function render(root, ctx) {
   for (const el of graph.querySelectorAll('.graph__halo, .graph__dot')) {
     el.style.left = pct(dot.left);
     el.style.top = pct(dot.top);
+  }
+
+  // Reveal: the dot travels from the centre to its place, numbers count up.
+  if (reveal) {
+    const size = graph.clientWidth;
+    for (const el of graph.querySelectorAll('.graph__halo, .graph__dot')) {
+      el.style.setProperty('--dx', `${(0.5 - dot.left) * size}px`);
+      el.style.setProperty('--dy', `${(0.5 - dot.top) * size}px`);
+    }
+    countUp(root.querySelectorAll('[data-count]'), ctx);
   }
 
   // The label sits above the dot as in the mockup; near the top edge it moves

@@ -44,27 +44,38 @@ export function render(root, ctx, n) {
 
       <div class="progress" aria-hidden="true">${segments}</div>
 
-      <div class="q-head">
-        <div class="q-head__lead">${esc(lead)}</div>
-        <h1 tabindex="-1">${esc(prompt)}</h1>
-      </div>
+      <div class="q-body" data-enter data-slide>
+        <div class="q-head">
+          <div class="q-head__lead">${esc(lead)}</div>
+          <h1 tabindex="-1">${esc(prompt)}</h1>
+        </div>
 
-      <div class="options" role="group" aria-label="${esc(ctx.questions.prompt)}">
-        ${optionHtml(top, pair.text[top], chosen === top)}
-        <div class="or-chip" aria-hidden="true">או</div>
-        ${optionHtml(bottom, pair.text[bottom], chosen === bottom)}
-      </div>
+        <div class="options" role="group" aria-label="${esc(ctx.questions.prompt)}">
+          ${optionHtml(top, pair.text[top], chosen === top)}
+          <div class="or-chip" aria-hidden="true">או</div>
+          ${optionHtml(bottom, pair.text[bottom], chosen === bottom)}
+        </div>
 
-      <p class="hint">גם אם שתי התכונות מתאימות לכם חלקית, בחרו את זו שמתארת אתכם טוב יותר.</p>
+        <p class="hint">גם אם שתי התכונות מתאימות לכם חלקית, בחרו את זו שמתארת אתכם טוב יותר.</p>
+      </div>
 
       <div class="spacer"></div>
 
       <div class="auto-note">${icon.forward(18)}<span>בחירה מעבירה אוטומטית לצמד הבא</span></div>
     </div>`;
 
-  root.querySelectorAll('.progress__fill').forEach((el) => {
-    el.style.width = `${Number(el.dataset.fill) * 100}%`;
-  });
+  // Progress starts from where the previous pair left it, then eases to the new value.
+  const fills = [...root.querySelectorAll('.progress__fill')];
+  const target = fills.map((el) => Number(el.dataset.fill));
+  const from = ctx.lastProgress && ctx.nav.from === 'q' ? ctx.lastProgress : target;
+  fills.forEach((el, i) => { el.style.width = `${from[i] * 100}%`; });
+  ctx.lastProgress = target;
+  if (from !== target) {
+    const raf = requestAnimationFrame(() => requestAnimationFrame(() => {
+      fills.forEach((el, i) => { el.style.width = `${target[i] * 100}%`; });
+    }));
+    ctx.onLeave(() => cancelAnimationFrame(raf));
+  }
 
   root.querySelector('[data-action="back"]').addEventListener('click', () => {
     ctx.go(n === 1 ? '#/intro' : `#/q/${n - 1}`);
@@ -79,7 +90,11 @@ export function render(root, ctx, n) {
       if (timer) return; // already moving on
       const side = btn.dataset.side;
       ctx.answer(pair.id, side);
-      options.forEach((o) => o.setAttribute('aria-pressed', String(o === btn)));
+      options.forEach((o) => {
+        o.setAttribute('aria-pressed', String(o === btn));
+        o.classList.toggle('is-picked', o === btn);
+        o.classList.toggle('is-dimmed', o !== btn);
+      });
       timer = setTimeout(() => {
         ctx.go(n < total ? `#/q/${n + 1}` : '#/result');
       }, ctx.selectDelay);
